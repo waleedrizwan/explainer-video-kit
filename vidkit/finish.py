@@ -25,9 +25,10 @@ def caption_chunks(T):
     """[(t0, t1, text)] — up to 3 words at a time, spread across each sentence by word length."""
     chunks = []
     for i, seg in enumerate(T.segs):
-        cues = seg["cues"] + [seg["dur"] + GAP]
+        gap = seg.get("gap", GAP)                 # the silence narrate() put after each sentence
+        cues = seg["cues"] + [seg["dur"]]         # dur already ends with the last sentence's gap
         for k, sentence in enumerate(seg["sentences"]):
-            t, spoken = T.start(i) + cues[k], cues[k + 1] - cues[k] - GAP
+            t, spoken = T.start(i) + cues[k], cues[k + 1] - cues[k] - gap
             groups, cur = [], []
             for w in sentence.upper().split():
                 cur.append(w)
@@ -72,29 +73,33 @@ def draw(img, s, y_frac=None, size_frac=None):
 # ---------------------------------------------------------------- frame sources
 def probe(video):
     out = subprocess.run(["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries",
-                          "stream=width,height,r_frame_rate", "-of", "json", str(video)],
+                          "stream=width,height,r_frame_rate,nb_frames", "-of", "json", str(video)],
                          capture_output=True, text=True, check=True).stdout
     st = json.loads(out)["streams"][0]
     num, den = st["r_frame_rate"].split("/")
-    return st["width"], st["height"], float(num) / float(den)
+    count = int(st["nb_frames"]) if st.get("nb_frames", "N/A").isdigit() else None
+    return st["width"], st["height"], float(num) / float(den), count
 
 
-def video_frames(video, W, H):
-    # -xerror: a damaged or truncated file is an error, not a quietly shorter video
+def video_frames(video, W, H, expect=None):
+    """Decoded RGB frames. A damaged or cut-off file is an error, not a quietly shorter video:
+    -xerror catches decode errors, and `expect` (the frame count in the file's header) catches a clean cut."""
     p = subprocess.Popen(["ffmpeg", "-v", "error", "-xerror", "-i", str(video), "-f", "rawvideo",
                           "-pix_fmt", "rgb24", "-"], stdout=subprocess.PIPE)
-    n = W * H * 3
+    n, got = W * H * 3, 0
     try:
         while True:
             buf = p.stdout.read(n)
             if len(buf) < n:
                 break
+            got += 1
             yield Image.frombytes("RGB", (W, H), buf)
     finally:
         p.stdout.close()
         rc = p.wait()
-    if rc or buf:
-        raise SystemExit(f"Could not decode all of {video} (ffmpeg exit {rc}). Re-render it.")
+    if rc or buf or (expect and got < expect - 1):
+        raise SystemExit(f"Could not decode all of {video} ({got} of {expect or '?'} frames, ffmpeg exit {rc}). "
+                         f"Re-render it.")
 
 
 def frame_files(src):
@@ -141,10 +146,11 @@ def main(project_dir, argv=None):
 
     if args.video:
         video = Path(args.video)
-        W, H, fps = probe(video)
-        frames = video_frames(video, W, H)
+        W, H, fps, count = probe(video)
+        frames = video_frames(video, W, H, count)
         audio_in = ["-i", str(video)]
-        audio_map = ["-map", "1:a?", "-c:a", "aac", "-b:a", "160k"]
+        # Manim's audio track ends a second or two before its video; pad it so -shortest keeps every frame
+        audio_map = ["-map", "1:a?", "-af", "apad", "-c:a", "aac", "-b:a", "160k"]
     else:
         src = project_dir / args.frames
         files = frame_files(src)

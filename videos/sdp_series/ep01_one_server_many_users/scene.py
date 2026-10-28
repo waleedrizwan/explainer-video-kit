@@ -207,7 +207,6 @@ class Explainer(EpisodeScene):
         self.seg(4)
         h = header("Many users: the queue")
         sv = server(s=1.0).move_to([2.6, 0.3, 0])
-        busy_box = SurroundingRectangle(sv, color=HI, buff=0.12, corner_radius=0.1).set_stroke(opacity=0)
         exitx = 6.6
         self.play(FadeIn(h), FadeIn(sv))
 
@@ -231,9 +230,9 @@ class Explainer(EpisodeScene):
                 t = tr.get_value()
                 g = VGroup()
                 waiting = [r for r in reqs if r[0] <= t < r[1]]
-                for k, r in enumerate(waiting):
+                for k in range(len(waiting)):
                     g.add(Dot(front + LEFT * 0.42 * k, radius=0.13, color=HI))
-                for a, s, f in reqs:
+                for _, s, f in reqs:
                     if s <= t < f:
                         g.add(Dot(pos(sv), radius=0.15, color=HI))
                     elif f <= t < f + 0.12:
@@ -438,9 +437,9 @@ class Explainer(EpisodeScene):
         ceil = DashedLine([-6.2, 1.55, 0], [-0.8, 1.55, 0], color=BAD)
         cl = txt("biggest machine you can buy", 16, BAD).next_to(ceil, UP, buff=0.1)
         self.play(FadeOut(specs), sv.animate.scale_to_fit_height(2.6).move_to([-3.5, 0.2, 0]), run_time=0.8)
-        self.play(Create(ceil), FadeIn(cl))
+        self.play(Create(ceil), FadeIn(cl), run_time=0.8)
         c1 = txt("− there is a ceiling", 20, BAD).move_to([3.6, -0.4, 0])
-        self.play(FadeIn(c1))
+        self.play(FadeIn(c1), run_time=0.6)
 
         self.cue(5)
         c2 = txt("− high-end hardware costs more per unit of power", 20, BAD)
@@ -482,9 +481,9 @@ class Explainer(EpisodeScene):
 
         self.cue(4)
         x = Cross(stroke_color=BAD, stroke_width=6).scale(0.35).move_to(grid[6])
-        self.play(Create(x), grid[6].animate.set_opacity(0.3), run_time=0.7)
+        self.play(Create(x), grid[6].animate.set_opacity(0.3), run_time=0.5)
         ok = txt("the other nine keep working", 18, GOOD).move_to([-2.4, -1.7, 0])
-        self.play(FadeIn(ok))
+        self.play(FadeIn(ok), run_time=0.4)
 
         self.cue(5)
         pros = VGroup(*[txt(s, 20, GOOD) for s in ("+ cheaper", "+ more available", "+ easier to hire for")])

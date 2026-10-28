@@ -19,6 +19,10 @@ bash setup.sh                 # Homebrew libs, Python venv, Manim, Kokoro + Pipe
 source .venv/bin/activate     # do this in every new terminal
 ```
 
+`requirements.txt` takes the newest compatible packages. To get the exact versions these videos were built with, run `pip install -r requirements.lock` instead. Kokoro downloads its voice model (about 330 MB) from Hugging Face the first time you narrate, and works offline after that.
+
+Run the tests with `pip install -r requirements-dev.txt && pytest`.
+
 For the blender style, also install [Blender](https://www.blender.org/download/) (or run `brew install --cask blender`). If `blender` isn't on your PATH, use `/Applications/Blender.app/Contents/MacOS/Blender`.
 
 ## Make a video
@@ -78,6 +82,8 @@ python finish.py --frames frames_draft --out draft.mp4   # watch the draft
 blender -b -P scene.py                  # final 1080x1920 -> frames/ (rendering resumes if stopped)
 python finish.py                        # captions + voice -> video.mp4
 ```
+
+The default engine is EEVEE. For path-traced lighting, add `-- --engine CYCLES`; it renders on the Mac's GPU through Metal (`--device CPU` to turn that off). The first Cycles GPU render on a machine spends a couple of minutes compiling kernels, and later renders are much faster.
 
 The final render resumes by skipping frames already in `frames/`, so after you change the scene or the script, run `rm -r frames` first. `finish.py` stops with an error if it finds missing frames, empty frames or frames of different sizes, instead of writing a video that's out of sync.
 

@@ -12,7 +12,7 @@
 All times are in seconds on the video clock. V.start(i) / V.end(i) / V.cue(i, k) come from
 the narration, so when you edit the script and re-run narration.py everything re-times itself.
 
-Command line (after the "--"):  --res 1080  --samples 32  --engine EEVEE|CYCLES  --draft
+Command line (after the "--"):  --res 1080  --samples 32  --engine EEVEE|CYCLES  --device GPU|CPU  --draft
                                 --still SECONDS  --out frames  --save scene.blend  --frames A B
 --draft writes to frames_draft/ (unless --out is given), so it never mixes with the final frames/.
 """
@@ -57,6 +57,7 @@ def _args():
     ap.add_argument("--res", type=int, default=1080)        # width of a vertical frame (height = 16:9)
     ap.add_argument("--landscape", action="store_true")     # 16:9 wide instead of 9:16 tall
     ap.add_argument("--samples", type=int, default=32)
+    ap.add_argument("--device", default="GPU")              # Cycles only: GPU (Metal) or CPU
     ap.add_argument("--draft", action="store_true")         # 540 wide, 8 samples: fast preview
     ap.add_argument("--frames", type=int, nargs=2, default=None)
     ap.add_argument("--out", default="frames")
@@ -102,7 +103,8 @@ def empty(name, loc=(0, 0, 0), parent=None):
 
 
 # ---------------------------------------------------------------- materials
-def mat(name, color, metal=0.0, rough=0.5, emit=None, emit_strength=0.0):
+def mat(name, color, metal=0.0, rough=0.5, emit=None, emit_strength=1.0):
+    """emit: glow colour (lamps, LEDs, hot wires); emit_strength 0 turns the glow off, e.g. to key it on later."""
     m = bpy.data.materials.new(name)
     m.use_nodes = True
     b = m.node_tree.nodes["Principled BSDF"]
@@ -163,7 +165,7 @@ def torus(name, major, minor, loc, material, rot=(0, 0, 0), parent=None):
     return _finish(bpy.context.object, name, material, parent)
 
 
-def text(body, loc, size, material, rot=(math.radians(90), 0, 0), parent=None):
+def text(body, loc, size, material, rot=(math.pi / 2, 0, 0), parent=None):
     """3D label. The default rotation stands it up facing the -Y direction (toward a front camera)."""
     bpy.ops.object.text_add(location=loc, rotation=rot)
     t = bpy.context.object
@@ -289,9 +291,9 @@ def key(thing, path, sec, value=None, interp=None):
         setattr(thing, path, value)
     thing.keyframe_insert(path, frame=F(sec))
     if interp:
-        owner = thing.id_data
-        for fc in _fcurves(owner):
-            if fc.data_path.endswith(path):
+        full = thing.path_from_id(path)          # e.g. 'nodes["Principled BSDF"].inputs[2].default_value'
+        for fc in _fcurves(thing.id_data):
+            if fc.data_path == full:
                 for kp in fc.keyframe_points:
                     if abs(kp.co[0] - F(sec)) < 0.5:
                         kp.interpolation = interp
@@ -348,6 +350,25 @@ class Camera:
 
 
 # ---------------------------------------------------------------- render
+def _cycles_device(want):
+    """'GPU' if asked for and a Metal GPU is available (Apple Silicon / recent AMD Macs), else 'CPU'."""
+    if want.upper() != "GPU":
+        return "CPU"
+    try:
+        prefs = bpy.context.preferences.addons["cycles"].preferences
+        prefs.compute_device_type = "METAL"
+        prefs.get_devices()
+        gpus = [d for d in prefs.devices if d.type == "METAL"]
+        for d in gpus:
+            d.use = True
+        if gpus:
+            return "GPU"
+    except (KeyError, TypeError, AttributeError):
+        pass
+    print("No Metal GPU found; Cycles renders on the CPU")
+    return "CPU"
+
+
 def render(V):
     """Apply render settings from the command line and render (or just build, inside the app)."""
     a, sc = V.args, bpy.context.scene
@@ -377,7 +398,7 @@ def render(V):
     else:
         r.engine = "CYCLES"
         c = sc.cycles
-        c.device, c.samples, c.use_denoising = "CPU", a.samples, True
+        c.device, c.samples, c.use_denoising = _cycles_device(a.device), a.samples, True
         c.max_bounces, c.diffuse_bounces, c.glossy_bounces = 4, 2, 2
         c.use_adaptive_sampling, c.adaptive_threshold = True, 0.05
         r.use_persistent_data = True

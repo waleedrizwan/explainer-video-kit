@@ -1,5 +1,4 @@
 """Shared drawing pieces for the System Design series: icons, labels, and a scene base with wipe() / trip().
-
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))   # the sdp_series folder
     from common import *
 """
@@ -110,10 +109,6 @@ class EpisodeScene(NarratedScene):
         d = Dot(pts[0], radius=r, color=color).set_z_index(10)
         path = VMobject().set_points_as_corners([np.array(p, dtype=float) for p in pts])
         return Succession(FadeIn(d, run_time=0.01), MoveAlongPath(d, path), FadeOut(d, run_time=0.01))
-
-    def left(self):
-        """Seconds until the current clip ends."""
-        return max(0.3, self._t0 + self._timing()[self._i]["dur"] - self.renderer.time)
 
 
 __all__ = [n for n in dir() if not n.startswith("_")]

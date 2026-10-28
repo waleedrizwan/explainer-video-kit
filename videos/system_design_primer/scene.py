@@ -270,9 +270,9 @@ class Explainer(NarratedScene):
         self.play(Create(pipe2), run_time=0.4)
         pks = [Square(0.2, stroke_width=0).set_fill(GOOD, 1).move_to(pipe2.get_start()) for _ in range(7)]
         self.play(LaggedStart(*[Succession(FadeIn(p, run_time=0.01), p.animate(rate_func=linear).move_to(pipe2.get_end()),
-                                           FadeOut(p, run_time=0.01)) for p in pks], lag_ratio=0.18), run_time=2.2)
+                                           FadeOut(p, run_time=0.01)) for p in pks], lag_ratio=0.18), run_time=1.7)
         thr = txt("throughput = actions per second", 18).move_to([3.45, -1.8, 0])
-        self.play(FadeIn(thr))
+        self.play(FadeIn(thr), run_time=0.5)
 
         self.cue(5)
         b = banner("Aim for maximal throughput with acceptable latency")
@@ -310,12 +310,11 @@ class Explainer(NarratedScene):
         va = txt("v1", 18, DIM).next_to(na, DOWN, buff=0.12)
         vb = txt("v1", 18, DIM).next_to(nb, DOWN, buff=0.12)
         link_ = Line(na.get_right(), nb.get_left(), color=DIM, stroke_width=4)
-        self.play(FadeIn(na), FadeIn(nb), Create(link_), FadeIn(va), FadeIn(vb), run_time=0.8)
+        self.play(FadeIn(na), FadeIn(nb), Create(link_), FadeIn(va), FadeIn(vb), run_time=0.5)
         cut = Cross(stroke_color=BAD, stroke_width=6).scale(0.25).move_to(link_)
-        self.play(link_.animate.set_color(BAD), Create(cut), run_time=0.6)
-        self.play(Transform(va, txt("v2", 18, HI).move_to(va)), Indicate(na, color=HI), run_time=0.8)
+        self.play(link_.animate.set_color(BAD), Create(cut), run_time=0.4)
         client = VGroup(person(s=0.8), txt("reader", 16, DIM)).arrange(DOWN, buff=0.1).move_to([5.4, -1.0, 0])
-        self.play(FadeIn(client))
+        self.play(Transform(va, txt("v2", 18, HI).move_to(va)), Indicate(na, color=HI), FadeIn(client), run_time=0.6)
 
         self.cue(4)
         self.play(self.trip([pos(client[0]), pos(nb)], WHITE), run_time=0.7)
@@ -489,7 +488,7 @@ class Explainer(NarratedScene):
         self.cue(4)
         q = txt("SQL or NoSQL?", 22, HI)
         kinds = VGroup(*[chip(s, PURPLE_, 15) for s in ("key-value", "document", "wide column", "graph")])
-        line = VGroup(q, *kinds).arrange(RIGHT, buff=0.25).move_to([0, -3.3, 0])
+        VGroup(q, *kinds).arrange(RIGHT, buff=0.25).move_to([0, -3.3, 0])   # lays out q and kinds in a row
         self.play(FadeIn(q), LaggedStart(*[FadeIn(k, shift=UP * 0.15) for k in kinds], lag_ratio=0.2), run_time=1.6)
         self.finish()
 

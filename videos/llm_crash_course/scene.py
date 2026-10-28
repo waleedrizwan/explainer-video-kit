@@ -594,9 +594,6 @@ class Explainer(NarratedScene):
         vg = txt("the vanishing gradient problem", 28, BAD).move_to(squeeze)
         self.play(ReplacementTransform(squeeze, vg))
         self.cue(4)
-        back = VGroup(*[Arrow(cells[i + 1].get_bottom() + DOWN * 0.15 + LEFT * 0.2,
-                              cells[i].get_bottom() + DOWN * 0.15 + RIGHT * 0.2, color=BAD, buff=0, stroke_width=3,
-                              max_tip_length_to_length_ratio=0.3).set_opacity(0) for i in range(len(toks) - 1)])
         self.play(FadeOut(VGroup(words, ups)))
         sig = VGroup(*[txt("1", 22, BAD).next_to(cells[-1], DOWN, buff=0.35)])
         self.play(FadeIn(sig[0]))
@@ -784,8 +781,7 @@ class Explainer(NarratedScene):
         self.cue(5)
         same = txt("same direction → high score", 18, DIM).next_to(dl, DOWN, buff=0.1)
         self.play(FadeIn(same), Indicate(vecs["animal"], color=NEG))
-        self.play(FadeOut(VGroup(dot1, dl, same)))
-        # score table
+        # score table (fades in as the dot-product notes fade out)
         hdr = VGroup(*[txt(s, 18, DIM) for s in ["word", "score", "e^score", "weight"]])
         xs = [1.2, 2.7, 4.3, 5.9]
         for t, x in zip(hdr, xs):
@@ -798,7 +794,7 @@ class Explainer(NarratedScene):
             rows[i] = [txt(w, 22, cols[w]).move_to([xs[0], y, 0]), txt(f"{SCORES[i]:.1f}", 22).move_to([xs[1], y, 0]),
                        txt(f"{EXPS[i]:.2f}", 22, DIM).move_to([xs[2], y, 0]),
                        txt(f"{WEIGHTS[i]:.2f}", 24, HI).move_to([xs[3], y, 0])]
-        self.play(FadeIn(hdr[:2]))
+        self.play(FadeOut(VGroup(dot1, dl, same)), FadeIn(hdr[:2]), run_time=0.7)
         for k, i in enumerate(order):
             self.cue(6 + k)
             self.play(FadeIn(rows[i][0]), FadeIn(rows[i][1]), Indicate(vecs[OTHERS[i]][0], color=cols[OTHERS[i]]),
@@ -1003,7 +999,7 @@ class Explainer(NarratedScene):
         rows = [("For example, he can sit, stay, and roll over.", 3.1),
                 ("For example, he knows how to sit, stay, and roll over.", 2.9)]
         out = VGroup()
-        for i, (s, p) in enumerate(rows):
+        for s, p in rows:
             r = VGroup(txt(f"{p}%", 26, HI), txt(s, 22)).arrange(RIGHT, buff=0.4)
             out.add(r)
         out.arrange(DOWN, aligned_edge=LEFT, buff=0.35).move_to([0, -1.4, 0])

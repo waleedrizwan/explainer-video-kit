@@ -6,6 +6,7 @@
 Creates videos/<name>/ and prints the commands to run.
 """
 import argparse
+import re
 import shutil
 import sys
 from pathlib import Path
@@ -32,6 +33,9 @@ ap.add_argument("name")
 ap.add_argument("--style", choices=STEPS, required=True)
 a = ap.parse_args()
 
+# letters, digits, _ and -; "/" nests a project in a series folder (sdp_series/ep02_dns)
+if not re.fullmatch(r"[\w-]+(/[\w-]+)*", a.name):
+    sys.exit(f"Bad name {a.name!r}: use letters, digits, _ and -, with / only to nest (series/episode)")
 dst = ROOT / "videos" / a.name
 if dst.exists():
     sys.exit(f"{dst} already exists")

@@ -129,7 +129,7 @@ SEGMENTS = [
     "Training has a matching problem, called the vanishing gradient problem. "
     "The signal that tells the network how to adjust its weights has to travel backwards through every step. "
     "At each step it gets multiplied by a number, often smaller than one. "
-    f"Multiply by one half, ten times over, and you are left with about one thousandth of the signal. "
+    "Multiply by one half, ten times over, and you are left with about one thousandth of the signal. "
     "So the network barely learns anything from words far back in the text. "
     "What we really want is a model that can look at the whole context at once.",
 

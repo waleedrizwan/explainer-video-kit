@@ -25,6 +25,8 @@ GAP = 0.3                              # silence after each sentence, seconds
 
 
 def _sentences(text):
+    """Split after . ? ! followed by a space. Abbreviations split too ("e.g. a" -> "e.g." | "a"), and a
+    closing quote hides the end ('"stop." Then' stays one sentence), so check `narration.py --cues`."""
     return [s for s in re.split(r"(?<=[.?!])\s+", text.strip()) if s]
 
 
@@ -80,6 +82,9 @@ def narrate(segments, project_dir, voice=DEFAULT_VOICE, engine="auto", speed=1.0
     cue animations on sentence starts. engine: 'auto' | 'piper' | 'kokoro' | 'say'.
     speed: 1.0 = the voice's normal pace, 1.15 = a bit brisker (good for short vertical videos)."""
     project_dir = Path(project_dir)
+    empty = [i for i, text in enumerate(segments) if not _sentences(text)]
+    if empty:
+        raise ValueError(f"segment {empty[0]} has no text; every segment needs at least one sentence")
     out = project_dir / "audio"
     out.mkdir(exist_ok=True)
     if engine == "kokoro":
@@ -112,7 +117,7 @@ def narrate(segments, project_dir, voice=DEFAULT_VOICE, engine="auto", speed=1.0
             wf.setparams(params)
             wf.writeframes(frames)
         dur = len(frames) / width / rate
-        timing.append({"dur": dur, "cues": offsets, "sentences": sentences})
+        timing.append({"dur": dur, "cues": offsets, "sentences": sentences, "gap": GAP})
         print(f"seg{i}: {dur:5.1f}s  " + "  ".join(f"[{k}] {o:.1f}" for k, o in enumerate(offsets)))
     tmp.unlink(missing_ok=True)
     (out / "timing.json").write_text(json.dumps(timing))
@@ -190,7 +195,7 @@ def find_root(here):
 
 # ---------------------------------------------------------------- Manim side
 try:
-    from manim import Scene, config
+    from manim import Scene, config, logger
 
     def vertical(width=8.0):
         """Call at the top of a Manim scene file for a 9:16 video (Reels / Shorts / TikTok).
@@ -204,8 +209,7 @@ try:
 
         self.seg(i)     start scene i's audio clip
         self.cue(k)     wait until sentence k of the current clip starts
-        self.until(k)   seconds from now until sentence k (use as a run_time)
-        self.finish()   wait until the clip ends (plus a small pad)
+        self.until(k)   seconds from now until sentence k (use as a run_time)        self.finish()   wait until the clip ends (plus a small pad)
         """
         project_dir = None   # set to Path(__file__).parent in your subclass
 
@@ -223,9 +227,13 @@ try:
             self._starts[str(i)] = self._t0
             (Path(self.project_dir) / "audio" / "starts.json").write_text(json.dumps(self._starts))
 
+        LATE = 0.3   # warn when the animation runs this far past the voice
+
         def cue(self, k):
             left = self._t0 + self._timing()[self._i]["cues"][k] - self.renderer.time
-            if left > 0.04:
+            if left < -self.LATE:
+                logger.warning(f"seg {self._i} cue {k}: animation is {-left:.2f}s behind the voice")
+            elif left > 0.04:
                 self.wait(left)
 
         def until(self, k):
@@ -233,7 +241,9 @@ try:
 
         def finish(self, pad=0.35):
             left = self._t0 + self._timing()[self._i]["dur"] + pad - self.renderer.time
-            if left > 0.04:
+            if left < -self.LATE:
+                logger.warning(f"seg {self._i}: animation runs {-left:.2f}s past the end of the clip")
+            elif left > 0.04:
                 self.wait(left)
 except ImportError:  # narrate() still works without manim installed (and inside Blender)
     pass
