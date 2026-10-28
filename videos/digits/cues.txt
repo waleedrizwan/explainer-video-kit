@@ -1,0 +1,123 @@
+== seg 0
+  [0] Here's a handwritten digit.
+  [1] You can see it's a zero.
+  [2] But a computer doesn't see a zero.
+  [3] It sees this.
+  [4] An eight by eight grid of brightness values, from zero for blank, to sixteen for full ink.
+  [5] Number the squares row by row, from zero to sixty three.
+  [6] That's the whole input.
+  [7] Sixty four numbers, and none of them means zero on its own.
+  [8] Models learn from thirteen hundred and forty seven digits like this, written by real people.
+  [9] Four hundred and fifty more are kept aside, to test on digits they've never seen.
+== seg 1
+  [0] First, a decision tree.
+  [1] It plays twenty questions, one pixel at a time.
+  [2] Its first question is, is pixel thirty six lit at all?
+  [3] That's this square, near the middle.
+  [4] It was picked because zeros have a hole right there.
+  [5] Then it asks about another pixel.
+  [6] Here is a tree three questions deep.
+  [7] Take this zero.
+  [8] Pixel thirty six is dark.
+  [9] Pixel twenty eight, dark.
+  [10] Pixel twenty one, lit.
+  [11] The tree says zero.
+  [12] Correct.
+  [13] Now this two.
+  [14] Pixel thirty six has a brightness of just three.
+  [15] Barely there, but that still counts as yes.
+  [16] Twenty one is lit.
+  [17] Thirty three is dark.
+  [18] So the tree says eight.
+  [19] Wrong.
+  [20] And that leaf is a mess.
+  [21] Of the six hundred and fifty six training digits that end up there, only nineteen percent are eights.
+== seg 2
+  [0] On the test digits, this three question tree gets forty seven percent right.
+  [1] Let the tree grow as deep as it likes, and it ends up fourteen questions deep, with a hundred and forty seven leaves.
+  [2] That gets eighty five point six percent.
+  [3] Why so many?
+  [4] Because one pixel tells you very little.
+  [5] Here are two nines from the training data.
+  [6] In this one, pixel thirty six is dark.
+  [7] In this one, it's bright.
+  [8] Same digit, opposite answers to the very first question.
+  [9] Write a digit a little lower, or tilt it, and the ink lands on different squares.
+  [10] So the tree has to patch together lots of special cases, one pixel at a time.
+== seg 3
+  [0] A neural network asks a different kind of question.
+  [1] Each hidden neuron looks at all sixty four pixels at once, with one weight per pixel.
+  [2] Sixty four weights fit in an eight by eight grid too.
+  [3] Yellow means ink on that square pushes the neuron up.
+  [4] Blue means ink there pushes it down.
+  [5] Multiply each pixel by its weight.
+  [6] Add it all up with a bias, and squash the total to between zero and one.
+  [7] For this zero, the answer is point nine four.
+  [8] Our network has sixteen of these hidden neurons.
+  [9] Here are four of them, after training.
+  [10] This one likes ink along the bottom.
+  [11] This one likes strokes down both sides, with nothing in the middle.
+  [12] This one likes a diagonal stroke.
+  [13] Not all sixteen are this easy to read, but each one answers a question about the whole image.
+  [14] Does it contain my pattern?
+  [15] And because it weighs dozens of pixels, nudging the ink by one square doesn't flip its answer.
+== seg 4
+  [0] Let's test the bottom stroke neuron.
+  [1] The zero gets point nine four.
+  [2] This eight gets point nine eight.
+  [3] And this four, which has no stroke along the bottom, gets point zero six.
+== seg 5
+  [0] Next comes the output layer.
+  [1] Ten neurons, one for each digit.
+  [2] Each one takes the sixteen hidden answers as its inputs, with its own weights.
+  [3] Take the bottom stroke answer.
+  [4] The output for two gives it a weight of plus one.
+  [5] The outputs for four and seven give it minus one point eight.
+  [6] Those digits don't have a bottom stroke.
+  [7] At the end, the ten scores are turned into chances that add up to one.
+  [8] Let's run the four through.
+  [9] Sixty four pixels go in.
+  [10] Sixteen hidden neurons answer.
+  [11] And the output for four gets ninety five percent.
+  [12] Now the two that fooled the small tree.
+  [13] The network says two, at sixty nine percent, with three as the runner up at twelve.
+  [14] Less sure, but right.
+== seg 6
+  [0] But nobody drew those patterns.
+  [1] The network started with random weights.
+  [2] Here are all sixteen neurons at the start.
+  [3] Pure noise.
+  [4] On the test digits, it scores ten percent, a blind guess.
+  [5] Training shows it the training digits, and nudges every weight a little, to make the right answer more likely.
+  [6] One pass through all of them is called an epoch.
+  [7] After one epoch, thirty percent.
+  [8] After five, eighty four.
+  [9] After twelve, ninety three point six.
+  [10] The noise fades, and strokes appear.
+  [11] It wobbles a bit from epoch to epoch.
+  [12] After sixty epochs, it scores ninety three point one percent on digits it has never seen.
+== seg 7
+  [0] So here's the scoreboard, on the same four hundred and fifty test digits.
+  [1] The full decision tree, eighty five point six percent.
+  [2] The network, ninety three point one.
+  [3] The tree misses sixty five digits.
+  [4] The network misses thirty one.
+  [5] Here are some the tree got wrong, and the network got right.
+  [6] A one, that the tree called a four.
+  [7] An eight, that it called a five.
+  [8] A four, that it called a nine.
+  [9] To be fair, it goes both ways.
+  [10] Thirteen digits fooled the network but not the tree.
+  [11] But forty seven went the other way.
+== seg 8
+  [0] So are networks just better?
+  [1] Not always.
+  [2] A tree's questions work well when each input already means something on its own.
+  [3] Think of a spreadsheet, with columns like hours studied, or age, or price.
+  [4] Is hours studied above some cutoff, is a useful question by itself.
+  [5] On data like that, trees, especially many trees combined, are often as good as a network, or better.
+  [6] A single pixel isn't like that.
+  [7] The meaning lives in combinations.
+  [8] A stroke, a loop, a curve.
+  [9] And that's exactly what hidden neurons are built to find.
+  [10] Which is why networks win on raw inputs like pixels, sound, and text.

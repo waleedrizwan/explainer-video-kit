@@ -1,0 +1,263 @@
+== seg 0
+  [0] Imagine you're building a smart thermostat.
+  [1] From two readings, temperature and humidity, you want it to tell whether a room feels comfortable.
+  [2] You could try to write the rules yourself.
+  [3] Or you could collect lots of examples, rooms where you measured both readings and asked people how they felt, and let the computer work out the rule.
+  [4] That's machine learning.
+  [5] Each reading we feed in is called a feature.
+  [6] The answer we want to predict, comfortable or not, is called the label.
+  [7] And the rule the computer learns is called a model.
+  [8] Step by step, we'll build up to a powerful kind of model: the neural network.
+== seg 1
+  [0] First, let's put the examples on a chart.
+  [1] Temperature goes across.
+  [2] Humidity goes up.
+  [3] Each dot is one room.
+  [4] Blue means people were comfortable.
+  [5] Orange means they weren't.
+  [6] Notice the shape.
+  [7] The comfortable rooms sit in the middle.
+  [8] Too hot, too cold, too damp, or too dry, and people complain.
+  [9] A model's job is to draw a boundary, with blue on one side and orange on the other.
+== seg 2
+  [0] What's the simplest rule a computer could learn?
+  [1] Take each reading, and multiply it by a number that says how much that reading matters.
+  [2] Add the results together.
+  [3] Then add one more number, a starting offset.
+  [4] If the total is above zero, say comfortable.
+  [5] Otherwise, say not.
+  [6] The numbers that multiply the readings are called weights.
+  [7] The extra offset is called the bias.
+  [8] For this rule, learning just means finding good values for the weights and the bias.
+== seg 3
+  [0] Here's the catch.
+  [1] The answer flips wherever the total is exactly zero.
+  [2] And for a rule built only from multiplying and adding, those points always form a straight line.
+  [3] Change the weights, and the line tilts.
+  [4] Change the bias, and it slides.
+  [5] But it is always straight.
+  [6] That's why this is called a linear model.
+== seg 4
+  [0] Now try to fence in the comfortable rooms with one straight line.
+  [1] Tilt it.
+  [2] Slide it.
+  [3] It never works, because the blue dots are surrounded on every side.
+  [4] When no straight line can separate the classes, the problem is called nonlinear.
+  [5] And most interesting real-world problems are nonlinear.
+== seg 5
+  [0] One old trick is to invent new features.
+  [1] Take how far the temperature is from the middle, and multiply it by itself.
+  [2] Do the same for humidity.
+  [3] A linear model on those two new features can draw a circle, and the comfortable rooms are fenced in.
+  [4] Making a new feature by multiplying features together like this is called a feature cross.
+== seg 6
+  [0] But someone had to guess which features to make.
+  [1] Here's a different dataset.
+  [2] Blue in two opposite corners, orange in the other two.
+  [3] Squaring doesn't help here.
+  [4] This one needs the two features multiplied by each other.
+  [5] Every new problem means more guessing and testing.
+  [6] What we really want is a model that discovers the useful combinations on its own.
+  [7] That's exactly what a neural network does.
+== seg 7
+  [0] To build one, let's first redraw our linear model as a picture.
+  [1] Each input gets a circle.
+  [2] These circles are called nodes.
+  [3] Each line carries a weight.
+  [4] The output node multiplies each input by its weight, adds them up, and adds the bias.
+  [5] Let's try real numbers.
+  [6] Inputs of two and one.
+  [7] Weights of three and minus one.
+  [8] A bias of one half.
+  [9] Three times two, plus minus one times one, plus a half.
+  [10] The output is five and a half.
+== seg 8
+  [0] Now the key idea.
+  [1] Instead of going straight from inputs to output, put a row of nodes in between.
+  [2] Each of these middle nodes is its own little linear model, with its own weights and its own bias.
+  [3] Each one computes its own weighted sum of the inputs.
+  [4] Then the output node takes a weighted sum of their results.
+  [5] The middle row is called a hidden layer, because we never see its values directly.
+  [6] We only see the inputs going in, and the answer coming out.
+  [7] Its nodes are often called neurons.
+  [8] All the weights and biases together are called the model's parameters.
+  [9] In the course's example, there are three inputs, four hidden neurons, and one output.
+  [10] Each hidden neuron has three weights plus a bias.
+  [11] That's four parameters, times four neurons, sixteen.
+  [12] The output has four weights plus a bias.
+  [13] Five more.
+  [14] Twenty one parameters in total, compared to just four for the linear model.
+== seg 9
+  [0] So, can this network draw curves?
+  [1] Surprisingly, no.
+  [2] Every step is still just multiplying and adding.
+  [3] Take a tiny example.
+  [4] A hidden node doubles its input.
+  [5] The output node triples that.
+  [6] The whole network simply multiplies by six.
+  [7] However many layers you stack, multiplying and adding on top of multiplying and adding is still just multiplying and adding.
+  [8] It collapses back into one linear model, and draws one straight line.
+== seg 10
+  [0] The fix is to add a bend.
+  [1] After each neuron computes its weighted sum, pass the result through a simple nonlinear function, before handing it to the next layer.
+  [2] This is called an activation function.
+  [3] You may have met one already.
+  [4] Logistic regression uses the sigmoid function, which squashes any number into a value between zero and one.
+  [5] Tanh is similar, but squashes to between minus one and one.
+  [6] And the most popular is ReLU, short for rectified linear unit.
+  [7] Its rule is simple.
+  [8] If the number is negative, output zero.
+  [9] Otherwise, pass it through unchanged.
+  [10] ReLU usually works a little better than the smooth curves.
+  [11] It's cheaper to compute, and it helps avoid a training problem called vanishing gradients, which we'll meet soon.
+== seg 11
+  [0] Why does such a small bend help so much?
+  [1] Here's a real network, trained on our comfort data.
+  [2] It has one hidden layer of three ReLU neurons.
+  [3] Let's look at what each neuron responds to.
+  [4] Each one draws a straight line across the chart.
+  [5] On one side, it outputs zero.
+  [6] On the other side, its output grows the further you go.
+  [7] Neuron one.
+  [8] Neuron two.
+  [9] Neuron three.
+  [10] The output node adds these three together, each with its own weight.
+  [11] Combined, the three folds make a closed shape, a triangle wrapped around the comfortable rooms.
+  [12] Nobody hand-made a feature.
+  [13] The network found its own.
+  [14] With more neurons and more layers, each layer builds more complex features out of the layer before it, and the shapes can get as detailed as the problem needs.
+== seg 12
+  [0] So a neural network has three ingredients.
+  [1] Nodes, arranged in layers.
+  [2] Weights and biases, connecting each layer to the next.
+  [3] And an activation function that bends each node's output.
+  [4] One honest caveat.
+  [5] Neural networks aren't always better than hand-made feature crosses.
+  [6] But they're a flexible option that works well on a huge range of problems.
+== seg 13
+  [0] Using a trained network to make a prediction is called inference.
+  [1] Let's walk through one.
+  [2] First, we rescale the readings, so that zero is the middle of the range.
+  [3] Twenty six degrees becomes one point zero, and fifty five percent humidity becomes zero point five.
+  [4] Each hidden neuron computes its weighted sum.
+  [5] ReLU turns the negative one into zero, and passes the others through.
+  [6] The output node combines them, and a sigmoid turns the result into a probability.
+  [7] Zero point nine nine.
+  [8] A ninety nine percent chance this room is comfortable.
+  [9] Information only flows one way, forward, from the inputs to the output.
+== seg 14
+  [0] The course's exercises draw out three lessons from this.
+  [1] First, if every input were zero, every weight would be multiplying zero.
+  [2] Each hidden neuron would just output its bias, after ReLU.
+  [3] Second, because information flows forward, changing one layer can only affect the layers after it.
+  [4] Third, look at neuron one.
+  [5] Its sum was minus one point four seven, and it output zero.
+  [6] Had its sum been minus five, it would still output zero.
+  [7] A value can look the same even when the calculation behind it has changed, so check the calculations, not just the outputs.
+== seg 15
+  [0] But where did those weights come from?
+  [1] Nobody chose them.
+  [2] They were learned.
+  [3] Training starts with random weights, so the first guesses are bad.
+  [4] To improve, the network needs a way to measure how bad.
+  [5] That measure is called the loss.
+  [6] For each example, compare the network's guess to the true label.
+  [7] A confident wrong answer gives a big loss.
+  [8] A confident right answer gives a loss near zero.
+  [9] Average over all the examples, and you get one number to make smaller.
+== seg 16
+  [0] Now picture every weight as a dial.
+  [1] For each dial, ask: if I turn it up a tiny bit, does the loss go up or down, and by how much?
+  [2] That answer is called the gradient.
+  [3] Then turn every dial a small step in the direction that lowers the loss.
+  [4] The size of that step is called the learning rate.
+  [5] Repeat, over and over.
+  [6] This is gradient descent.
+== seg 17
+  [0] The hard part is finding the gradient for every weight, when there can be millions of them, buried inside layers.
+  [1] That's what backpropagation does.
+  [2] It starts at the output, where the error is known.
+  [3] Then it works backwards, one layer at a time.
+  [4] Each layer's share of the blame is calculated from the layer after it.
+  [5] One backward pass gives the gradient for every weight at once.
+  [6] It's the most common way to train neural networks, and libraries like Keras do it for you automatically.
+== seg 18
+  [0] Here's our network learning.
+  [1] At the start, with random weights, it gets fewer than half the rooms right.
+  [2] After sixty steps, the loss has dropped, and a shape is starting to form.
+  [3] After two hundred, every training room is classified correctly.
+  [4] By fifteen hundred, the boundary is crisp.
+  [5] We also kept forty rooms aside that the network never trained on.
+  [6] The loss on those is called the test loss.
+  [7] It's low too, so the network learned the pattern, not just memorized the examples.
+  [8] The course's own exercise solves a pattern like this with the same setup, one hidden layer of three ReLU neurons.
+== seg 19
+  [0] Training doesn't always go smoothly.
+  [1] Backpropagation multiplies many numbers together as it moves back through the layers.
+  [2] If those numbers are small, the product shrinks fast.
+  [3] The sigmoid's slope is never more than a quarter.
+  [4] Ten layers of that, and the signal is less than one millionth of its size.
+  [5] The early layers barely learn.
+  [6] This is the vanishing gradient problem.
+  [7] ReLU helps, because its slope is exactly one for every positive input.
+  [8] The opposite can happen too.
+  [9] If the weights are large, the product grows out of control, and training never settles.
+  [10] That's an exploding gradient.
+  [11] Batch normalization, or a lower learning rate, can help.
+== seg 20
+  [0] ReLU has its own trap.
+  [1] If a neuron's sum gets pushed below zero for every example, it always outputs zero, and no gradient can flow through it.
+  [2] It can stay stuck forever.
+  [3] That's called a dead ReLU.
+  [4] A lower learning rate, or a variant like Leaky ReLU, which lets a little signal through below zero, can prevent it.
+  [5] Finally, a technique called dropout.
+  [6] During each training step, randomly switch off some of the neurons.
+  [7] That stops the network from leaning too heavily on any one of them, which helps it work on new examples.
+  [8] The dropout rate sets how many to switch off.
+  [9] Zero means none, and one means all of them, so useful values lie in between.
+== seg 21
+  [0] So far, our model has chosen between two answers.
+  [1] That's called binary classification.
+  [2] But often there are more.
+  [3] Is this fruit an apple, an orange, a pear, or a grape?
+  [4] Choosing among several classes is called multi-class classification.
+== seg 22
+  [0] One approach is called one versus all.
+  [1] Build a separate yes or no classifier for each class.
+  [2] Is it an apple?
+  [3] Is it an orange?
+  [4] Is it a pear?
+  [5] Is it a grape?
+  [6] With many classes, that gets wasteful.
+  [7] A more efficient version uses a single network, with one output node per class, each with its own sigmoid.
+  [8] Shown a pear, the course's network says: apple, point three four.
+  [9] Orange, point one eight.
+  [10] Pear, point eight four.
+  [11] Grape, point zero seven.
+  [12] Each answer is independent of the others, so they don't add up to one.
+  [13] Here, they total one point four three.
+== seg 23
+  [0] Often, we want the classes to compete instead.
+  [1] The course calls this one versus one, but it's usually known as softmax.
+  [2] Softmax takes each output's raw score, and makes it positive by raising e to that power.
+  [3] Then it divides each one by the total.
+  [4] Now every probability is between zero and one, and together they add up to exactly one.
+  [5] Here, the pear comes out at sixty two percent, ahead of apple, orange, and grape.
+  [6] This extra rule also helps training converge faster.
+  [7] For softmax to work, the layer feeding it needs one node per class.
+== seg 24
+  [0] With thousands or millions of classes, computing every probability gets expensive.
+  [1] Full softmax calculates them all.
+  [2] Candidate sampling calculates the true class, plus only a random sample of the others.
+  [3] And softmax assumes each example belongs to exactly one class.
+  [4] A photo of a bowl holding apples and oranges needs two yes answers at once.
+  [5] For that, go back to separate sigmoid outputs, one independent yes or no for each class.
+== seg 25
+  [0] Let's put it all together.
+  [1] A linear model multiplies features by weights, adds a bias, and can only draw straight lines.
+  [2] Hidden layers combine features, but on their own they're still linear.
+  [3] Activation functions add the bends that make curves possible.
+  [4] Inference runs the network forward to make a prediction.
+  [5] Training measures the loss, and backpropagation nudges every weight downhill.
+  [6] And for many classes, use one-versus-all sigmoids, or softmax.
+  [7] That's a neural network, from the ground up.
